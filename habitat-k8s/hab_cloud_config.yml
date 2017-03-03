@@ -1,0 +1,25 @@
+#cloud-config
+package_upgrade: true
+packages:
+  - 'docker.io'
+  - 'python'
+  - 'python-pip'
+  - 'build-essential'
+  - 'libssl-dev'
+  - 'libffi-dev'
+  - 'python-dev'
+  - 'git'
+runcmd:
+  - wget "https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux" -O hab.tar.gz
+  - tar -xvzf hab.tar.gz
+  - mkdir -p /home/deploy/bin
+  - tar -xvzf hab.tar.gz -C /home/deploy/bin --strip-components=1
+  - sudo -i -H -u deploy 'echo "export PATH=$PATH:~/bin" > /home/deploy/.profile'
+  - chown -R deploy:deploy /home/deploy/bin
+  - pip install --upgrade pip
+  - sudo -i -H -u deploy sudo pip install --user azure-cli
+  - chown -R deploy:deploy /home/deploy/.local
+  - sudo -i -H -u deploy git clone http://github.com/habitat-sh/core-plans.git
+  - chown -R deploy:deploy /home/deploy/core-plans
+final_message: "The system is up, after $UPTIME seconds"
+
