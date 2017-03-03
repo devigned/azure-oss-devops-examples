@@ -13,7 +13,6 @@ echo "Creating a Chef Habitat development machine (Ubuntu 16.04 LTS) with Azure 
 az vm create -g ${project_id} -n ${vm_name} --admin-username deploy \
     --image Canonical:UbuntuServer:16.04-LTS:latest --custom-data hab_cloud_config.yml --no-wait 1>/dev/null
 
-echo ""
 echo "Creating Azure Kubernetes cluster named ${cluster_name} in group ${project_id}"
 az acs create -g ${project_id} -n ${cluster_name} --orchestrator-type Kubernetes 1>/dev/null
 
@@ -22,7 +21,8 @@ ip_address=$(az vm list-ip-addresses -g ${project_id} -n ${vm_name} \
     --query "[0].virtualMachine.network.publicIpAddresses[0].ipAddress" -o tsv)
 
 echo "Syncing your local ~/.azure directory to ${vm_name}"
+ssh-keyscan $ip_address >> ~/.ssh/known_hosts
 scp -r ~/.azure deploy@${ip_address}:. 1>/dev/null
 
 echo "You can now connect via 'ssh deploy@${ip_address}'"
-echo "To delete all of the infrastructure run `az group delete -n ${project_id} -y --no-wait`"
+echo "To delete all of the infrastructure run 'az group delete -n ${project_id} -y --no-wait'"

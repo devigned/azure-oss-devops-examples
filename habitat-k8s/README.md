@@ -11,3 +11,19 @@ applications in Kubernetes.
 
 via https://blog.chef.io/2016/11/08/how-to-run-habitat-applications-in-kubernetes/
 
+## Prerequisites
+To use this demo, you will need to have installed Azure CLI. Simply run `curl -L https://aka.ms/InstallAzureCli | bash` to install.
+
+## Setup a Habitat development VM and a Kubernetes cluster
+- run `./deploy.sh`
+
+### Habitat Development VM
+The habitat development VM provides all of the tools needed to build and deploy Habitat
+packages on Azure. The machine comes provisioned with Azure CLI pre-authenticated with your
+user credentials, Habitat CLI, Docker, kubectl (also pre-authenticated) and git.
+
+### Azure Kubernetes Cluster
+The Azure Kubernetes Cluster is a fully functional Azure Container Service running the
+Kubernetes orchestrator.
+
+## Running the Demo on the Habitat Development VM

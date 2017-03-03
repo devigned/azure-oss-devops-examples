@@ -1,5 +1,12 @@
 #cloud-config
-package_upgrade: true
+
+# Upgrade the instance on first boot
+apt_upgrade: true
+
+# Update apt database on first boot
+apt_update: true
+
+# Install additional packages on first boot
 packages:
   - 'docker.io'
   - 'python'
@@ -9,17 +16,25 @@ packages:
   - 'libffi-dev'
   - 'python-dev'
   - 'git'
+
+# Commands to prepare the Habitat development environment
 runcmd:
   - wget "https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux" -O hab.tar.gz
   - tar -xvzf hab.tar.gz
   - mkdir -p /home/deploy/bin
   - tar -xvzf hab.tar.gz -C /home/deploy/bin --strip-components=1
-  - sudo -i -H -u deploy 'echo "export PATH=$PATH:~/bin" > /home/deploy/.profile'
+  - sudo -H -u deploy 'echo "export PATH=$PATH:~/bin" > /home/deploy/.profile'
   - chown -R deploy:deploy /home/deploy/bin
   - pip install --upgrade pip
-  - sudo -i -H -u deploy sudo pip install --user azure-cli
+  - sudo -H -u deploy sudo pip install --user azure-cli
   - chown -R deploy:deploy /home/deploy/.local
   - sudo -i -H -u deploy git clone http://github.com/habitat-sh/core-plans.git
-  - chown -R deploy:deploy /home/deploy/core-plans
+  - sudo -H -u deploy ssh-keygen -f /home/deploy/.ssh/id_rsa -t rsa -P ""
+  - sudo -H -u az acs kubernetes get-credentials -g ${project_id} -n ${cluster_name}
+  - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+  - chmod +x ./kubectl
+  - mv ./kubectl /usr/local/bin/kubectl
+
+# Print message at the end of cloud-init job
 final_message: "The system is up, after $UPTIME seconds"
 
