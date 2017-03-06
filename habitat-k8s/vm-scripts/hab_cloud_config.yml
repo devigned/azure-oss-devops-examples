@@ -30,7 +30,7 @@ runcmd:
   - chown -R deploy:deploy /home/deploy/.local
   - sudo -i -H -u deploy git clone http://github.com/habitat-sh/core-plans.git
   - sudo -H -u deploy ssh-keygen -f /home/deploy/.ssh/id_rsa -t rsa -P ""
-  - sudo -H -u az acs kubernetes get-credentials -g ${project_id} -n ${cluster_name}
+  - sudo -H -u deploy az acs kubernetes get-credentials -g ${project_id} -n ${cluster_name} --ssh-key-file /home/deploy/.ssh/id_rsa -f /home/deploy/.kube/config
   - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
   - chmod +x ./kubectl
   - mv ./kubectl /usr/local/bin/kubectl

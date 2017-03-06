@@ -21,7 +21,7 @@ ip_address=$(az vm list-ip-addresses -g ${project_id} -n ${vm_name} \
     --query "[0].virtualMachine.network.publicIpAddresses[0].ipAddress" -o tsv)
 
 echo "Syncing your local ~/.azure directory to ${vm_name}"
-ssh-keyscan $ip_address >> ~/.ssh/known_hosts
+ssh-keyscan $ip_address >> ~/.ssh/known_hosts 1>/dev/null
 scp -r ~/.azure deploy@${ip_address}:. 1>/dev/null
 
 echo "You can now connect via 'ssh deploy@${ip_address}'"
