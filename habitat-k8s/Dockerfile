@@ -34,6 +34,9 @@ RUN apt-get update -qq && \
     curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && \
     chmod +x kubectl && \
     mv kubectl /usr/local/bin/kubectl && \
+    wget -q "https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux" -O hab.tar.gz && \
+    tar -xvzf hab.tar.gz && \
+    tar -xvzf hab.tar.gz -C /usr/local/bin/ --strip-components=1 && \
     useradd -ms /bin/bash demo && echo "demo:demo" | chpasswd && adduser demo sudo && \
     echo '%sudo ALL=NOPASSWD: ALL' > /etc/sudoers.d/sudoers-nopassword
 
@@ -41,11 +44,7 @@ USER demo
 WORKDIR /home/demo
 
 RUN pip install --user azure-cli && \
-    wget -q "https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux" -O hab.tar.gz && \
-    tar -xvzf hab.tar.gz && \
-    mkdir /home/demo/bin && \
-    tar -xvzf hab.tar.gz -C $HOME/bin --strip-components=1 && \
-    echo "PATH=$PATH:$HOME/bin:$HOME/.local/bin" >> $HOME/.bashrc && \
+    echo "PATH=$PATH:$HOME/.local/bin" >> $HOME/.bashrc && \
     echo -e "\
     _python_argcomplete() {\n\
         local IFS='\v'\n\
@@ -55,8 +54,7 @@ RUN pip install --user azure-cli && \
         fi\n\
     }\n\
     complete -o nospace -F _python_argcomplete \"az\"\n\
-    " >> ~/.bashrc && \
-    rm -rf $HOME/hab*
+    " >> ~/.bashrc
 
 COPY docker_scripts $HOME
 

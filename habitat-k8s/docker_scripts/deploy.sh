@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
+set -e
+
 project_id="habitat-k8s"
 vm_name="habitat-dev"
 cluster_name="k8s-cluster"
+registry_name=$(mktemp -u habk8sXXXX)
 location='westus'
 
 if [[ -z $(az account list -o tsv 2>/dev/null ) ]]; then
@@ -16,7 +19,7 @@ else
     echo "Using ~/.ssh/id_rsa to authenticate with the Kubernetes cluster"
 fi
 
-if [[ -z $(az acs show -g ${project_id} -n ${cluster_name}) ]]; then
+if [[ -z $(az acs show -g ${project_id} -n ${cluster_name} -o tsv) ]]; then
     echo "Creating Resource group named ${project_id}"
     az group create -n ${project_id} -l ${location} 1>/dev/null
 
@@ -27,6 +30,20 @@ else
     echo "Using Azure Kubernetes cluster named ${cluster_name} in group ${project_id}"
 fi
 
+registry=$(az acr show -g ${project_id} -n ${registry_name} --query "loginServer" -o tsv)
+
+if [[ -z ${registry} ]]; then
+    echo "Creating Azure Container Registry named ${registry_name} in group ${project_id}"
+    registry=$(az acr create -g ${project_id} -n ${registry_name} -l ${location} \
+                --admin-enabled --query "loginServer" -o tsv)
+else
+    echo "Using Azure Container Registry named ${registry_name} in group ${project_id}"
+fi
+
+read pw user_name <<< "$(az acr credential show -g ${project_id} -n ${registry_name} -o tsv)"
+echo "Logging Docker into ${registry} with user: ${user_name}"
+docker login ${registry} -u ${user_name} -p ${pw}
+
 if [[ ! -d ${HOME}.kube/config ]]; then
     echo "Creating ${HOME}.kube/config w/ credentials for managing ${cluster_name}"
     az acs kubernetes get-credentials -g ${project_id} -n ${cluster_name} 1>/dev/null
@@ -34,6 +51,5 @@ else
     echo "Using ${HOME}.kube/config w/ credentials for managing ${cluster_name}"
 fi
 
-echo ""
 echo "Your Kubernetes cluster has been deployed and you are ready to connect."
 echo "To connect to the cluster run 'kubectl cluster-info'"

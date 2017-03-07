@@ -33,7 +33,11 @@ SSD disk cache.
 ## Running the Demo
 
 ### Setup a Habitat development container and a K8s cluster
-- **Run container:** `$ docker run -it --name az-hab-k8s devigned/az-hab-k8s`
+- **Run container:** 
+  ```
+  $ docker run -v /var/run/docker.sock:/var/run/docker.sock \
+      -it --privileged --name az-hab-k8s devigned/az-hab-k8s
+  ```
 - **Deploy K8s Cluster:** `$ ./deploy` *(inside the `az-hab-k8s` container)*
   - The [deploy script](./docker_scripts/deploy.sh) will deploy the k8s cluster and create the `~/kube/.config`
   
@@ -66,3 +70,36 @@ If you exit from the container, you can restart / attach to the container again 
 - **Attach to container:** `$ docker attach az-hab-k8s`
 
 ### Deploying your first Habitat Package
+- `git clone https://github.com/habitat-sh/core-plans.git`
+- `hab origin key generate az-hab-k8s`
+- `hab studio -k az-hab-k8s -s core-plans/redis enter`
+- `[1][default:/src:0]# ls`
+  ```
+    README.md  config  default.toml  plan.sh
+  ```
+- `[2][default:/src:0]# vi plan.sh`
+  - change pkg_origin from `core` to `az-hab-k8s`
+- `[3][default:/src:0]# vi default.toml`
+  - change `protected-mode="yes"` to `protected-mode="no"`
+- `[4][default:/src:0]# build`
+  ```
+     redis: hab-plan-build cleanup
+     redis:
+     redis: Source Cache: /hab/cache/src/redis-3.2.4
+     redis: Installed Path: /hab/pkgs/az-hab-k8s/redis/3.2.4/20170307213311
+     redis: Artifact: /src/results/az-hab-k8s-redis-3.2.4-20170307213311-x86_64-linux.hart
+     redis: Build Report: /src/results/last_build.env
+     redis: SHA256 Checksum: f9ccd359d01ca163327092e83c774a27fb6feb4b778e81bf9af9f09b19b3f678
+     redis: Blake2b Checksum: 07b86b36626e83ed73c7b57d32be83d42179a105d7a9ca311a0f71e7141c0615  /hab/cache/artifacts/az-hab-k8s-redis-3.2.4-20170307213311-x86_64-linux.hart
+     redis:
+     redis: I love it when a plan.sh comes together.
+     redis:
+     redis: Build time: 1m36s
+  ```
+- `[5][default:/src:0]# ls -l results/`
+  ```
+    -rw-r--r-- 1 root root 582479 Mar  7 21:34 az-hab-k8s-redis-3.2.4-20170307213311-x86_64-linux.hart
+    -rw-r--r-- 1 root root    436 Mar  7 21:34 last_build.env
+  ```
+- `[6][default:/src:0]# hab pkg export docker az-hab-k8s/redis`
+- `[7][default:/src:0]# hab pkg install core/docker`
