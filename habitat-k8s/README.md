@@ -35,7 +35,7 @@ SSD disk cache.
 ### Setup a Habitat development container and a K8s cluster
 - **Run container:** `$ docker run -it --name az-hab-k8s devigned/az-hab-k8s`
 - **Deploy K8s Cluster:** `$ ./deploy` *(inside the `az-hab-k8s` container)*
-  - this script will deploy the k8s cluster and create the `~/kube/.config`
+  - The [deploy script](./docker_scripts/deploy.sh) will deploy the k8s cluster and create the `~/kube/.config`
   
 Output from the script should be the following:
 ```
@@ -64,3 +64,5 @@ kubernetes-dashboard is running at https://k8s-cluster-habitat-k8s-xxxxx.westus.
 If you exit from the container, you can restart / attach to the container again with the following steps.
 - **Start container:** `$ docker start az-hab-k8s`
 - **Attach to container:** `$ docker attach az-hab-k8s`
+
+### Deploying your first Habitat Package

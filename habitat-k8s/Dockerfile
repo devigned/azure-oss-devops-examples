@@ -3,7 +3,6 @@ FROM debian:jessie
 ENV EDITOR vim
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
-RUN useradd -ms /bin/bash demo
 RUN apt-get update -qq && \
     apt-get install -qqy --no-install-recommends \
       apt-utils \
@@ -34,7 +33,9 @@ RUN apt-get update -qq && \
     python get-pip.py && \
     curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && \
     chmod +x kubectl && \
-    mv kubectl /usr/local/bin/kubectl
+    mv kubectl /usr/local/bin/kubectl && \
+    useradd -ms /bin/bash demo && echo "demo:demo" | chpasswd && adduser demo sudo && \
+    echo '%sudo ALL=NOPASSWD: ALL' > /etc/sudoers.d/sudoers-nopassword
 
 USER demo
 WORKDIR /home/demo
