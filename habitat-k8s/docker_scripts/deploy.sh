@@ -1,28 +1,46 @@
 #!/usr/bin/env bash
 
-project_id="habitat-k8s001"
+project_id="habitat-k8s"
 vm_name="habitat-dev"
 cluster_name="k8s-cluster"
 location='westus'
 
-# Create the resource group if it doesn't exist
-echo "Creating resource group ${project_id} in ${location}"
-az group create -n ${project_id} -l ${location} 1>/dev/null
+if [[ -z $(az account list -o tsv 2>/dev/null ) ]]; then
+    az login 1>/dev/null
+fi
 
-echo "Creating a Chef Habitat development machine (Ubuntu 16.04 LTS) with Azure CLI and Docker also installed"
-az vm create -g ${project_id} -n ${vm_name} --admin-username deploy \
-    --image Canonical:UbuntuServer:16.04-LTS:latest --custom-data hab_cloud_config.yml --no-wait 1>/dev/null
+if [[ ! -f ~/.ssh/kube_rsa ]]; then
+    echo "Generating ssh keys to use for setting up the Kubernetes cluster"
+    ssh-keygen -f ~/.ssh/kube_rsa -t rsa -N '' 1>/dev/null
+else
+    echo "Using ~/.ssh/kube_rsa"
+fi
 
-echo "Creating Azure Kubernetes cluster named ${cluster_name} in group ${project_id}"
-az acs create -g ${project_id} -n ${cluster_name} --orchestrator-type Kubernetes 1>/dev/null
+if [[ -z $(az acs show -g habitat-k8s001 -n k8s-cluster) ]]; then
+    echo "Creating Resource group named ${project_id}"
+    az group create -n ${project_id} -l ${location} 1>/dev/null
 
-# Get public IP address for the VM
-ip_address=$(az vm list-ip-addresses -g ${project_id} -n ${vm_name} \
-    --query "[0].virtualMachine.network.publicIpAddresses[0].ipAddress" -o tsv)
+    echo "Creating Azure Kubernetes cluster named ${cluster_name} in group ${project_id}"
+    az acs create -g ${project_id} -n ${cluster_name} --orchestrator-type Kubernetes \
+        --ssh-key-value ~/.ssh/kube_rsa.pub --agent-vm-size Standard_DS2_v2 1>/dev/null
+else
+    echo "Using Azure Kubernetes cluster named ${cluster_name} in group ${project_id}"
+fi
 
-echo "Syncing your local ~/.azure directory to ${vm_name}"
-ssh-keyscan $ip_address >> ~/.ssh/known_hosts 1>/dev/null
-scp -r ~/.azure deploy@${ip_address}:. 1>/dev/null
+if [[ ! -f /usr/local/bin/kubectl ]]; then
+    echo "Installing kubectl in /usr/local/bin/kubectl"
+    sudo az acs kubernetes install-cli 1>/dev/null
+else
+    echo "Using kubectl in /usr/local/bin/kubectl"
+fi
 
-echo "You can now connect via 'ssh deploy@${ip_address}'"
-echo "To delete all of the infrastructure run 'az group delete -n ${project_id} -y --no-wait'"
+if [[ ! -d ${HOME}.kube/config ]]; then
+    echo "Creating ${HOME}.kube/config w/ credentials for managing ${cluster_name}"
+    az acs kubernetes get-credentials --ssh-key-file ~/.ssh/kube_rsa 1>/dev/null
+else
+    echo "Using ${HOME}.kube/config w/ credentials for managing ${cluster_name}"
+fi
+
+echo ""
+echo "Your Kubernetes cluster has been deployed and you are ready to connect."
+echo "To connect to the cluster run 'kubectl cluster-info'"

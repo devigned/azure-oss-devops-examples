@@ -25,17 +25,22 @@ RUN apt-get update -qq && \
       musl-dev \
       wget \
       openssl \
-      jq && \
+      openssh-client \
+      jq \
+      sudo && \
     update-ca-certificates && \
     rm -rf /var/lib/apt/lists/* && \
     wget -q https://bootstrap.pypa.io/get-pip.py && \
-    python get-pip.py
+    python get-pip.py && \
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && \
+    chmod +x kubectl && \
+    mv kubectl /usr/local/bin/kubectl
 
 USER demo
 WORKDIR /home/demo
 
 RUN pip install --user azure-cli && \
-    wget "https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux" -O hab.tar.gz && \
+    wget -q "https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux" -O hab.tar.gz && \
     tar -xvzf hab.tar.gz && \
     mkdir /home/demo/bin && \
     tar -xvzf hab.tar.gz -C $HOME/bin --strip-components=1 && \
@@ -49,6 +54,9 @@ RUN pip install --user azure-cli && \
         fi\n\
     }\n\
     complete -o nospace -F _python_argcomplete \"az\"\n\
-    " >> ~/.bashrc
+    " >> ~/.bashrc && \
+    rm -rf $HOME/hab*
+
+COPY docker_scripts $HOME
 
 
