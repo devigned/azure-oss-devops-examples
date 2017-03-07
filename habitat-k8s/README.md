@@ -12,18 +12,32 @@ applications in Kubernetes.
 via https://blog.chef.io/2016/11/08/how-to-run-habitat-applications-in-kubernetes/
 
 ## Prerequisites
-To use this demo, you will need to have installed Azure CLI. Simply run `curl -L https://aka.ms/InstallAzureCli | bash` to install.
+To use this demo, you will need to have [Docker](https://docs.docker.com/engine/installation/) installed.
 
-## Setup a Habitat development VM and a Kubernetes cluster
-- run `./deploy.sh`
+## Overview of Components
 
-### Habitat Development VM
-The habitat development VM provides all of the tools needed to build and deploy Habitat
-packages on Azure. The machine comes provisioned with Azure CLI pre-authenticated with your
-user credentials, Habitat CLI, Docker, kubectl (also pre-authenticated) and git.
+### Habitat / K8s development container
+The habitat development VM provides all of the tools needed to build and deploy a k8s cluster and
+Habitat packages on Azure. The machine comes provisioned with Azure CLI, Habitat CLI, Docker, 
+kubectl, git and a scripts to help you get started.
 
-### Azure Kubernetes Cluster
+### Azure K8s Cluster
 The Azure Kubernetes Cluster is a fully functional Azure Container Service running the
-Kubernetes orchestrator.
+Kubernetes orchestrator. All nodes are running on Standard_DS2_v2 (2 CPU cores, 7 GiB RAM, 14 GiB local SSD). 
+Standard_DS2_v2 can use Premium Storage, which provides high-performance, low-latency storage for I/O intensive 
+workloads. These VMs use solid-state drives (SSDs) to host a virtual machine’s disks and also provide a local 
+SSD disk cache.
+- 3 Master nodes
+- 2 Agent nodes
 
-## Running the Demo on the Habitat Development VM
+## Running the Demo
+
+### Setup a Habitat development container and a K8s cluster
+- **Run container:** `$ docker run -it --name az-hab-k8s devigned/az-hab-k8s`
+- **Deploy K8s Cluster:** `$ ./deploy` *(inside the `az-hab-k8s` container)*
+  - this script will deploy the k8s cluster and create the `~/kube/.config`
+
+### Reattach to the development container
+If you exit from the container, you can restart / attach to the container again with the following steps.
+- **Start container:** `$ docker start az-hab-k8s`
+- **Attach to container:** `$ docker attach az-hab-k8s`
