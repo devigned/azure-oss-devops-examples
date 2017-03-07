@@ -35,14 +35,14 @@ registry=$(az acr show -g ${project_id} -n ${registry_name} --query "loginServer
 if [[ -z ${registry} ]]; then
     echo "Creating Azure Container Registry named ${registry_name} in group ${project_id}"
     registry=$(az acr create -g ${project_id} -n ${registry_name} -l ${location} \
-                --admin-enabled --query "loginServer" -o tsv)
+                --admin-enabled true --query "loginServer" -o tsv)
 else
     echo "Using Azure Container Registry named ${registry_name} in group ${project_id}"
 fi
 
 read pw user_name <<< "$(az acr credential show -g ${project_id} -n ${registry_name} -o tsv)"
 echo "Logging Docker into ${registry} with user: ${user_name}"
-docker login ${registry} -u ${user_name} -p ${pw}
+sudo docker login ${registry} -u ${user_name} -p ${pw}
 
 if [[ ! -d ${HOME}.kube/config ]]; then
     echo "Creating ${HOME}.kube/config w/ credentials for managing ${cluster_name}"

@@ -10,6 +10,7 @@ RUN apt-get update -qq && \
       build-essential \
       curl \
       ca-certificates \
+      software-properties-common \
       git \
       lsb-release \
       python-all \
@@ -28,6 +29,13 @@ RUN apt-get update -qq && \
       jq \
       sudo && \
     update-ca-certificates && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add - && \
+    add-apt-repository \
+       "deb [arch=amd64] https://download.docker.com/linux/debian \
+       $(lsb_release -cs) \
+       stable" && \
+    apt-get update -qq && \
+    apt-get install docker-ce -qqy --no-install-recommends && \
     rm -rf /var/lib/apt/lists/* && \
     wget -q https://bootstrap.pypa.io/get-pip.py && \
     python get-pip.py && \
@@ -44,6 +52,7 @@ USER demo
 WORKDIR /home/demo
 
 RUN pip install --user azure-cli && \
+    az component update --add acr && \
     echo "PATH=$PATH:$HOME/.local/bin" >> $HOME/.bashrc && \
     echo -e "\
     _python_argcomplete() {\n\
