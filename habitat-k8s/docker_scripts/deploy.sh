@@ -6,37 +6,30 @@ cluster_name="k8s-cluster"
 location='westus'
 
 if [[ -z $(az account list -o tsv 2>/dev/null ) ]]; then
-    az login 1>/dev/null
+    az login -o table
 fi
 
-if [[ ! -f ~/.ssh/kube_rsa ]]; then
+if [[ ! -f ~/.ssh/id_rsa ]]; then
     echo "Generating ssh keys to use for setting up the Kubernetes cluster"
-    ssh-keygen -f ~/.ssh/kube_rsa -t rsa -N '' 1>/dev/null
+    ssh-keygen -f ~/.ssh/id_rsa -t rsa -N '' 1>/dev/null
 else
-    echo "Using ~/.ssh/kube_rsa"
+    echo "Using ~/.ssh/id_rsa to authenticate with the Kubernetes cluster"
 fi
 
-if [[ -z $(az acs show -g habitat-k8s001 -n k8s-cluster) ]]; then
+if [[ -z $(az acs show -g ${project_id} -n ${cluster_name}) ]]; then
     echo "Creating Resource group named ${project_id}"
     az group create -n ${project_id} -l ${location} 1>/dev/null
 
     echo "Creating Azure Kubernetes cluster named ${cluster_name} in group ${project_id}"
     az acs create -g ${project_id} -n ${cluster_name} --orchestrator-type Kubernetes \
-        --ssh-key-value ~/.ssh/kube_rsa.pub --agent-vm-size Standard_DS2_v2 1>/dev/null
+        --agent-vm-size Standard_DS2_v2 --agent-count 2 1>/dev/null
 else
     echo "Using Azure Kubernetes cluster named ${cluster_name} in group ${project_id}"
 fi
 
-if [[ ! -f /usr/local/bin/kubectl ]]; then
-    echo "Installing kubectl in /usr/local/bin/kubectl"
-    sudo az acs kubernetes install-cli 1>/dev/null
-else
-    echo "Using kubectl in /usr/local/bin/kubectl"
-fi
-
 if [[ ! -d ${HOME}.kube/config ]]; then
     echo "Creating ${HOME}.kube/config w/ credentials for managing ${cluster_name}"
-    az acs kubernetes get-credentials --ssh-key-file ~/.ssh/kube_rsa 1>/dev/null
+    az acs kubernetes get-credentials -g ${project_id} -n ${cluster_name} 1>/dev/null
 else
     echo "Using ${HOME}.kube/config w/ credentials for managing ${cluster_name}"
 fi
