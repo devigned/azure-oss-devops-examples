@@ -52,8 +52,8 @@ USER demo
 WORKDIR /home/demo
 
 RUN pip install --user azure-cli && \
-    az component update --add acr && \
     echo "PATH=$PATH:$HOME/.local/bin" >> $HOME/.bashrc && \
+    $HOME/.local/bin/az component update --add acr && \
     echo -e "\
     _python_argcomplete() {\n\
         local IFS='\v'\n\

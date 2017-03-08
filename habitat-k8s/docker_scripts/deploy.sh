@@ -11,6 +11,7 @@ location='westus'
 if [[ -z $(az account list -o tsv 2>/dev/null ) ]]; then
     az login -o table
 fi
+echo ""
 
 if [[ ! -f ~/.ssh/id_rsa ]]; then
     echo "Generating ssh keys to use for setting up the Kubernetes cluster"
@@ -31,7 +32,6 @@ else
 fi
 
 registry=$(az acr show -g ${project_id} -n ${registry_name} --query "loginServer" -o tsv)
-
 if [[ -z ${registry} ]]; then
     echo "Creating Azure Container Registry named ${registry_name} in group ${project_id}"
     registry=$(az acr create -g ${project_id} -n ${registry_name} -l ${location} \
@@ -39,10 +39,13 @@ if [[ -z ${registry} ]]; then
 else
     echo "Using Azure Container Registry named ${registry_name} in group ${project_id}"
 fi
+echo ""
 
 read pw user_name <<< "$(az acr credential show -g ${project_id} -n ${registry_name} -o tsv)"
 echo "Logging Docker into ${registry} with user: ${user_name}"
 sudo docker login ${registry} -u ${user_name} -p ${pw}
+echo "To push to your docker registry run 'docker push ${registry}/myImage'"
+echo ""
 
 if [[ ! -d ${HOME}.kube/config ]]; then
     echo "Creating ${HOME}.kube/config w/ credentials for managing ${cluster_name}"
@@ -53,3 +56,4 @@ fi
 
 echo "Your Kubernetes cluster has been deployed and you are ready to connect."
 echo "To connect to the cluster run 'kubectl cluster-info'"
+echo ""

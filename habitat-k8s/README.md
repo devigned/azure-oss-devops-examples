@@ -106,7 +106,7 @@ If you exit from the container, you can restart / attach to the container again 
       -rw-r--r-- 1 root root    436 Mar  7 21:34 last_build.env
     ```
 - `[6][default:/src:0]# hab pkg export docker az-hab-k8s/redis`
-- `[7][default:/src:0]#\ hab pkg install core/docker`
+- `[7][default:/src:0]# hab pkg install core/docker`
 - `[8][default:/src:0]# hab pkg exec core/docker docker tag az-hab-k8s/redis k8sregistry-on.azurecr.io/az-hab-k8s/redis`
 - `$ sudo docker push k8sregistry-on.azurecr.io/az-hab-k8s/redis:latest`
 - `$ kubectl run redis --image=gcr.io/$PROJECT_ID/redis:latest --port=6379`
