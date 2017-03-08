@@ -5,7 +5,7 @@ set -e
 project_id="habitat-k8s"
 vm_name="habitat-dev"
 cluster_name="k8s-cluster"
-registry_name=$(mktemp -u habk8sXXXX)
+registry_name=$(echo $(mktemp -u habk8sXXXX) | tr '[:upper:]' '[:lower:]')
 location='westus'
 
 if [[ -z $(az account list -o tsv 2>/dev/null ) ]]; then
