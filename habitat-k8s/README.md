@@ -34,6 +34,7 @@ SSD disk cache.
 
 ### Setup a Habitat development container and a K8s cluster
 - **Run container:** 
+
   ```
   $ docker run -v /var/run/docker.sock:/var/run/docker.sock \
       -it --privileged --name az-hab-k8s devigned/az-hab-k8s
